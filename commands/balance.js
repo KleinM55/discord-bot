@@ -17,7 +17,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setTitle('🌾 رصيدك الحالي')
-      .setDescription(`🌿 Crops: **${user.farm}**`)
+      .setDescription(`🌿 محصولك الحالي **${user.farm}**`)
       .setColor(0x2ecc71)
       .setFooter({ text: `🌿 مزرعة السحر | ${new Date().toLocaleString()}` });
 
