@@ -22,29 +22,24 @@ module.exports = {
         const minutes = Math.ceil(remaining / 60000);
 
         const embed = new EmbedBuilder()
-          .setTitle('⏳ لا يمكنك الحصاد الآن')
-          .setDescription(`يجب عليك الانتظار **${minutes} دقيقة** قبل الحصاد مرة أخرى`)
-          .setColor(0xe74c3c)
-          .setFooter({
-            text: `مزرعة السحر 🌿 | ${new Date().toLocaleString()}`
-          });
+          .setTitle('⏳ انتظر قبل الحصاد')
+          .setDescription(`يمكنك الحصاد مرة أخرى بعد **${minutes} دقيقة**`)
+          .setColor(0xe74c3c);
 
         return interaction.reply({ embeds: [embed], flags: 64 });
       }
     }
 
-    const amount = Math.floor(Math.random() * 15) + 1;
+    const amount = Math.floor(Math.random() * 10) + 1;
 
     eco.addBalance(userId, amount);
     cooldowns.set(userId, now);
 
     const embed = new EmbedBuilder()
       .setTitle('🌾 عملية الحصاد')
-      .setDescription(`لقد حصدت محصولاً من القمح!\n\n💰 الكمية: **${amount} كيس قمح**`)
+      .setDescription(`لقد حصلت على **${amount} محصول**`)
       .setColor(0x2ecc71)
-      .setFooter({
-        text: `مزرعة السحر 🌿 | ${new Date().toLocaleString()}`
-      });
+      .setFooter({ text: 'مزرعة السحر 🌿' });
 
     await interaction.reply({ embeds: [embed] });
   }
