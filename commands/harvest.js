@@ -35,7 +35,7 @@ module.exports = {
 
     const amount = Math.floor(Math.random() * 15) + 1;
 
-    eco.addFarm(userId, amount);
+    eco.addBalance(userId, amount);
     cooldowns.set(userId, now);
 
     const embed = new EmbedBuilder()
