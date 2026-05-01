@@ -6,13 +6,13 @@ const cooldowns = new Map();
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('collect')
-    .setDescription('جمع المحصول الأسبوعي'),
+    .setDescription('المكافأة الأسبوعية'),
 
   async execute(interaction) {
     try {
       const userId = interaction.user.id;
-      const now = Date.now();
 
+      const now = Date.now();
       const week = 7 * 24 * 60 * 60 * 1000;
 
       if (cooldowns.has(userId)) {
@@ -23,36 +23,23 @@ module.exports = {
           const days = Math.ceil(remaining / (24 * 60 * 60 * 1000));
 
           const embed = new EmbedBuilder()
-            .setTitle('⏳ لا يمكنك الجمع الآن')
-            .setDescription(`يمكنك جمع المحصول مرة أخرى بعد **${days} يوم**`)
+            .setTitle('⏳ لا يمكنك استلام المكافأة الآن')
+            .setDescription(`يمكنك استلام المكافأة مرة أخرى بعد **${days} يوم**`)
             .setColor(0xe74c3c)
             .setFooter({
               text: `مزرعة السحر 🌿 | ${new Date().toLocaleString()}`
             });
 
-          return interaction.reply({
-            embeds: [embed],
-            flags: 64
-          });
+          return interaction.reply({ embeds: [embed], flags: 64 });
         }
       }
 
-      const user = eco.getUser(userId);
-      const amount = user.farm;
-
-      if (amount <= 0) {
-        return interaction.reply({
-          content: '❌ لا يوجد لديك أي محصول لجمعه',
-          flags: 64
-        });
-      }
-
-      eco.removeFarm(userId, amount);
+      const amount = eco.collectWeekly(userId);
       cooldowns.set(userId, now);
 
       const embed = new EmbedBuilder()
-        .setTitle('📦 تم جمع المحصول الأسبوعي')
-        .setDescription(`🎉 لقد قمت بجمع كل محصولك بنجاح!\n\n🌾 الكمية: **${250} كيس قمح**`)
+        .setTitle('🎁 المكافأة الأسبوعية')
+        .setDescription(`لقد حصلت على مكافأتك الأسبوعية بنجاح!\n\n💰 الكمية: **${amount} عملة**`)
         .setColor(0x2ecc71)
         .setFooter({
           text: `مزرعة السحر 🌿 | ${new Date().toLocaleString()}`
@@ -64,7 +51,7 @@ module.exports = {
       console.error('Collect error:', err);
 
       await interaction.reply({
-        content: '❌ حدث خطأ أثناء جمع المحصول',
+        content: '❌ حدث خطأ أثناء استلام المكافأة',
         flags: 64
       });
     }
