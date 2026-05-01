@@ -4,10 +4,10 @@ const eco = require('../utils/economy');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('balance')
-    .setDescription(`🌿 محصولك الحالي **${user.farm ?? 0}**`)
+    .setDescription('عرض المحصول')
     .addUserOption(opt =>
       opt.setName('user')
-        .setDescription('Target user')
+        .setDescription('اختيار لاعب')
         .setRequired(false)
     ),
 
@@ -16,10 +16,10 @@ module.exports = {
     const user = eco.getUser(target.id);
 
     const embed = new EmbedBuilder()
-      .setTitle('🌾 رصيدك الحالي')
-      .setDescription(`🌿 محصولك الحالي **${user.farm}**`)
+      .setTitle('💰 المحصول')
+      .setDescription(`👤 ${target.username}\n🌾 المحصول: **${user.balance}**`)
       .setColor(0x2ecc71)
-      .setFooter({ text: `🌿 مزرعة السحر | ${new Date().toLocaleString()}` });
+      .setFooter({ text: 'مزرعة السحر 🌿' });
 
     await interaction.reply({ embeds: [embed] });
   }
