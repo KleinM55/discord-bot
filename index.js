@@ -10,13 +10,14 @@ const {
 
 require('dotenv').config();
 
+/* ---------------- CLIENT ---------------- */
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
 client.commands = new Collection();
 
-/* ---------------- GLOBAL CRASH PROTECTION ---------------- */
+/* ---------------- CRASH PROTECTION ---------------- */
 process.on('unhandledRejection', err => {
   console.error('Unhandled Rejection:', err);
 });
@@ -25,7 +26,7 @@ process.on('uncaughtException', err => {
   console.error('Uncaught Exception:', err);
 });
 
-/* ---------------- SAFE COMMAND LOADER ---------------- */
+/* ---------------- COMMAND LOADER ---------------- */
 function loadCommands(dir) {
   if (!fs.existsSync(dir)) {
     console.log('Commands folder not found');
@@ -43,27 +44,42 @@ function loadCommands(dir) {
       } else if (file.endsWith('.js')) {
         const command = require(fullPath);
 
+        // 🛡️ حماية من الملفات الخربانة
         if (!command?.data || !command?.execute) {
-          console.log(`Invalid command skipped: ${file}`);
-          return;
+          console.log(`⚠️ Skipped invalid command: ${file}`);
+          continue; // ✅ FIXED (was return ❌)
+        }
+
+        if (!command.data.name) {
+          console.log(`⚠️ Command missing name: ${file}`);
+          continue;
         }
 
         client.commands.set(command.data.name, command);
       }
     } catch (err) {
-      console.error(`Error loading command ${file}:`, err);
+      console.error(`❌ Error loading command ${file}:`, err);
     }
   }
 }
 
 loadCommands(path.join(__dirname, 'commands'));
 
-/* ---------------- REGISTER COMMANDS ---------------- */
+/* ---------------- READY EVENT ---------------- */
 client.once('ready', async () => {
   try {
     console.log(`Logged in as ${client.user.tag}`);
 
-    const commands = client.commands.map(cmd => cmd.data.toJSON());
+    const commands = client.commands
+      .map(cmd => {
+        try {
+          return cmd.data.toJSON();
+        } catch (e) {
+          console.log(`⚠️ Failed to register command: ${cmd.data?.name}`);
+          return null;
+        }
+      })
+      .filter(cmd => cmd !== null);
 
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
@@ -72,7 +88,7 @@ client.once('ready', async () => {
       { body: commands }
     );
 
-    console.log(`Loaded ${commands.length} commands`);
+    console.log(`✅ Loaded ${commands.length} commands`);
 
   } catch (err) {
     console.error('Startup error:', err);
@@ -92,7 +108,7 @@ client.on('interactionCreate', async interaction => {
     console.error(`Command error (${interaction.commandName}):`, err);
 
     const reply = {
-      content: 'Something went wrong while executing this command.',
+      content: '⚠️ حصل خطأ أثناء تنفيذ الأمر.',
       flags: 64
     };
 
