@@ -4,7 +4,7 @@ const eco = require('../utils/economy');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('balance')
-    .setDescription('Check farm')
+    .setDescription(`🌿 محصولك الحالي **${user.farm ?? 0}**`)
     .addUserOption(opt =>
       opt.setName('user')
         .setDescription('Target user')
