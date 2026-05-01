@@ -16,46 +16,64 @@ const client = new Client({
 
 client.commands = new Collection();
 
-/* ---------------------------
-   GLOBAL ERROR HANDLERS
-----------------------------*/
-process.on('unhandledRejection', error => {
-  console.error('Unhandled Rejection:', error);
+/* ---------------- SAFE ERROR HANDLING ---------------- */
+process.on('unhandledRejection', err => {
+  console.error('Unhandled Rejection:', err);
 });
 
-process.on('uncaughtException', error => {
-  console.error('Uncaught Exception:', error);
+process.on('uncaughtException', err => {
+  console.error('Uncaught Exception:', err);
 });
 
-/* ---------------------------
-   LOAD COMMANDS (RECURSIVE)
-----------------------------*/
-/ loadCommands(commandsPath);
-/* ---------------------------
-   REGISTER SLASH COMMANDS
-----------------------------*/
+/* ---------------- LOAD COMMANDS ---------------- */
+function loadCommands(dir) {
+  if (!fs.existsSync(dir)) return;
+
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+
+    try {
+      if (fs.lstatSync(fullPath).isDirectory()) {
+        loadCommands(fullPath);
+      } else if (file.endsWith('.js')) {
+        const command = require(fullPath);
+
+        if (!command?.data || !command?.execute) continue;
+
+        client.commands.set(command.data.name, command);
+      }
+    } catch (err) {
+      console.error(`Error loading ${file}:`, err);
+    }
+  }
+}
+
+const commandsPath = path.join(__dirname, 'commands');
+loadCommands(commandsPath);
+
+/* ---------------- READY ---------------- */
 client.once('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}`);
-
-  const commands = client.commands.map(cmd => cmd.data.toJSON());
-
-  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
   try {
+    console.log(`Logged in as ${client.user.tag}`);
+
+    const commands = client.commands.map(cmd => cmd.data.toJSON());
+
+    const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
     await rest.put(
       Routes.applicationCommands(client.user.id),
       { body: commands }
     );
 
     console.log(`Loaded ${commands.length} commands`);
-  } catch (error) {
-    console.error('Failed to register commands:', error);
+  } catch (err) {
+    console.error('Startup error:', err);
   }
 });
 
-/* ---------------------------
-   INTERACTION HANDLER
-----------------------------*/
+/* ---------------- INTERACTIONS ---------------- */
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -64,11 +82,11 @@ client.on('interactionCreate', async interaction => {
 
   try {
     await command.execute(interaction);
-  } catch (error) {
-    console.error(`Command error (${interaction.commandName}):`, error);
+  } catch (err) {
+    console.error(err);
 
     const reply = {
-      content: 'Something went wrong while executing this command.',
+      content: 'Error executing command.',
       flags: 64
     };
 
@@ -80,7 +98,5 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-/* ---------------------------
-   LOGIN
-----------------------------*/
+/* ---------------- LOGIN ---------------- */
 client.login(process.env.TOKEN);
