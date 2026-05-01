@@ -30,32 +30,7 @@ process.on('uncaughtException', error => {
 /* ---------------------------
    LOAD COMMANDS (RECURSIVE)
 ----------------------------*/
-function loadCommands(dir) {
-  const files = fs.readdirSync(dir);
-
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-
-    if (fs.lstatSync(fullPath).isDirectory()) {
-      loadCommands(fullPath);
-    } else if (file.endsWith('.js')) {
-      const command = require(fullPath);
-
-      if (!command.data || !command.execute) continue;
-
-      client.commands.set(command.data.name, command);
-    }
-  }
-}
-
-const commandsPath = path.join(__dirname, 'commands');
-
-if (fs.existsSync(commandsPath)) {
-  loadCommands(commandsPath);
-} else {
-  console.log('No commands folder found');
-}
-
+/ loadCommands(commandsPath);
 /* ---------------------------
    REGISTER SLASH COMMANDS
 ----------------------------*/
