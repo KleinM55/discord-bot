@@ -16,10 +16,10 @@ module.exports = {
     const user = eco.getUser(target.id);
 
     const embed = new EmbedBuilder()
-      .setTitle('🌾 Farm Info')
+      .setTitle('🌾 رصيدك الحالي')
       .setDescription(`🌿 Crops: **${user.farm}**`)
       .setColor(0x2ecc71)
-      .setFooter({ text: `Magic Farm 🌿 | ${new Date().toLocaleString()}` });
+      .setFooter({ text: `🌿 مزرعة السحر | ${new Date().toLocaleString()}` });
 
     await interaction.reply({ embeds: [embed] });
   }
