@@ -19,7 +19,7 @@ module.exports = {
 
       const embed = new EmbedBuilder()
         .setTitle('🌾 تم جمع المحصول!')
-        .setDescription(`جمعت **${amount}** من المحصول 🌿`)
+        .setDescription(`جمعت **${250}** من المحصول 🌿`)
         .setColor(0x2ecc71)
         .setFooter({
           text: `مزرعة السحر 🌿 | ${new Date().toLocaleString()}`
