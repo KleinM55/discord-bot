@@ -16,7 +16,7 @@ const client = new Client({
 
 client.commands = new Collection();
 
-/* ---------------- SAFE ERROR HANDLING ---------------- */
+/* ---------------- GLOBAL CRASH PROTECTION ---------------- */
 process.on('unhandledRejection', err => {
   console.error('Unhandled Rejection:', err);
 });
@@ -25,9 +25,12 @@ process.on('uncaughtException', err => {
   console.error('Uncaught Exception:', err);
 });
 
-/* ---------------- LOAD COMMANDS ---------------- */
+/* ---------------- SAFE COMMAND LOADER ---------------- */
 function loadCommands(dir) {
-  if (!fs.existsSync(dir)) return;
+  if (!fs.existsSync(dir)) {
+    console.log('Commands folder not found');
+    return;
+  }
 
   const files = fs.readdirSync(dir);
 
@@ -40,20 +43,22 @@ function loadCommands(dir) {
       } else if (file.endsWith('.js')) {
         const command = require(fullPath);
 
-        if (!command?.data || !command?.execute) continue;
+        if (!command?.data || !command?.execute) {
+          console.log(`Invalid command skipped: ${file}`);
+          return;
+        }
 
         client.commands.set(command.data.name, command);
       }
     } catch (err) {
-      console.error(`Error loading ${file}:`, err);
+      console.error(`Error loading command ${file}:`, err);
     }
   }
 }
 
-const commandsPath = path.join(__dirname, 'commands');
-loadCommands(commandsPath);
+loadCommands(path.join(__dirname, 'commands'));
 
-/* ---------------- READY ---------------- */
+/* ---------------- REGISTER COMMANDS ---------------- */
 client.once('ready', async () => {
   try {
     console.log(`Logged in as ${client.user.tag}`);
@@ -68,12 +73,13 @@ client.once('ready', async () => {
     );
 
     console.log(`Loaded ${commands.length} commands`);
+
   } catch (err) {
     console.error('Startup error:', err);
   }
 });
 
-/* ---------------- INTERACTIONS ---------------- */
+/* ---------------- INTERACTION HANDLER ---------------- */
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -83,10 +89,10 @@ client.on('interactionCreate', async interaction => {
   try {
     await command.execute(interaction);
   } catch (err) {
-    console.error(err);
+    console.error(`Command error (${interaction.commandName}):`, err);
 
     const reply = {
-      content: 'Error executing command.',
+      content: 'Something went wrong while executing this command.',
       flags: 64
     };
 
