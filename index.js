@@ -1,6 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-const { Client, GatewayIntentBits, REST, Routes, Collection } = require('discord.js');
+const {
+  Client,
+  GatewayIntentBits,
+  REST,
+  Routes,
+  Collection
+} = require('discord.js');
+
 require('dotenv').config();
 
 const client = new Client({
@@ -9,7 +16,20 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// 🔹 function to read commands (including subfolders)
+/* ---------------------------
+   GLOBAL ERROR HANDLERS
+----------------------------*/
+process.on('unhandledRejection', error => {
+  console.error('Unhandled Rejection:', error);
+});
+
+process.on('uncaughtException', error => {
+  console.error('Uncaught Exception:', error);
+});
+
+/* ---------------------------
+   LOAD COMMANDS (RECURSIVE)
+----------------------------*/
 function loadCommands(dir) {
   const files = fs.readdirSync(dir);
 
@@ -17,20 +37,28 @@ function loadCommands(dir) {
     const fullPath = path.join(dir, file);
 
     if (fs.lstatSync(fullPath).isDirectory()) {
-      loadCommands(fullPath); // recursion for subfolders
+      loadCommands(fullPath);
     } else if (file.endsWith('.js')) {
       const command = require(fullPath);
-      if (command.data && command.execute) {
-        client.commands.set(command.data.name, command);
-      }
+
+      if (!command.data || !command.execute) continue;
+
+      client.commands.set(command.data.name, command);
     }
   }
 }
 
-// 🔹 load all commands
-loadCommands(path.join(__dirname, 'commands'));
+const commandsPath = path.join(__dirname, 'commands');
 
-// 🔹 register commands
+if (fs.existsSync(commandsPath)) {
+  loadCommands(commandsPath);
+} else {
+  console.log('No commands folder found');
+}
+
+/* ---------------------------
+   REGISTER SLASH COMMANDS
+----------------------------*/
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
@@ -43,13 +71,16 @@ client.once('ready', async () => {
       Routes.applicationCommands(client.user.id),
       { body: commands }
     );
+
     console.log(`Loaded ${commands.length} commands`);
   } catch (error) {
-    console.error(error);
+    console.error('Failed to register commands:', error);
   }
 });
 
-// 🔹 handle interactions
+/* ---------------------------
+   INTERACTION HANDLER
+----------------------------*/
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -59,13 +90,22 @@ client.on('interactionCreate', async interaction => {
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error(error);
+    console.error(`Command error (${interaction.commandName}):`, error);
+
+    const reply = {
+      content: 'Something went wrong while executing this command.',
+      flags: 64
+    };
+
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'Error executing command', ephemeral: true });
+      await interaction.followUp(reply);
     } else {
-      await interaction.reply({ content: 'Error executing command', ephemeral: true });
+      await interaction.reply(reply);
     }
   }
 });
 
+/* ---------------------------
+   LOGIN
+----------------------------*/
 client.login(process.env.TOKEN);
