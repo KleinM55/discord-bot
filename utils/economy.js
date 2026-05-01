@@ -17,7 +17,6 @@ function getUser(id) {
 
   if (!data[id]) {
     data[id] = {
-      balance: 0,
       farm: 0,
       total: 0
     };
@@ -29,7 +28,8 @@ function getUser(id) {
 
 function addFarm(id, amount) {
   const data = load();
-  if (!data[id]) data[id] = { balance: 0, farm: 0, total: 0 };
+
+  if (!data[id]) data[id] = { farm: 0, total: 0 };
 
   data[id].farm += amount;
   data[id].total += amount;
@@ -37,36 +37,13 @@ function addFarm(id, amount) {
   save(data);
 }
 
-function collectFarm(id) {
+function removeFarm(id, amount) {
   const data = load();
-  if (!data[id]) return 0;
 
-  const amount = data[id].farm;
-
-  data[id].balance += amount;
-  data[id].farm = 0;
-
-  save(data);
-
-  return amount;
-}
-
-function addBalance(id, amount) {
-  const data = load();
-  if (!data[id]) data[id] = { balance: 0, farm: 0, total: 0 };
-
-  data[id].balance += amount;
-  data[id].total += amount;
-
-  save(data);
-}
-
-function removeBalance(id, amount) {
-  const data = load();
   if (!data[id]) return;
 
-  data[id].balance -= amount;
-  if (data[id].balance < 0) data[id].balance = 0;
+  data[id].farm -= amount;
+  if (data[id].farm < 0) data[id].farm = 0;
 
   save(data);
 }
@@ -82,8 +59,6 @@ function getLeaderboard() {
 module.exports = {
   getUser,
   addFarm,
-  collectFarm,
-  addBalance,
-  removeBalance,
+  removeFarm,
   getLeaderboard
 };
