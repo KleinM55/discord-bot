@@ -13,18 +13,13 @@ module.exports = {
 
     for (let i = 0; i < lb.length; i++) {
       const member = await interaction.guild.members.fetch(lb[i][0]);
-      const name = member.displayName;
-
-      desc += `**${i + 1}.** ${name} — **${lb[i][1].total} كيس قمح** 🌾\n`;
+      desc += `**${i + 1}.** ${member.displayName} — **${lb[i][1].total}** 🌾\n`;
     }
 
     const embed = new EmbedBuilder()
       .setTitle('🏆 لوحة الصدارة')
       .setDescription(desc)
-      .setColor(0xFFD700)
-      .setFooter({
-        text: `مزرعة السحر 🌿 | ${new Date().toLocaleString()}`
-      });
+      .setColor(0xf1c40f);
 
     await interaction.reply({ embeds: [embed] });
   }
