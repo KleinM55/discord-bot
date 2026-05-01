@@ -4,12 +4,12 @@ const eco = require('../utils/economy');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('take')
-    .setDescription('Remove money from a user')
+    .setDescription('Remove crops')
     .addUserOption(opt =>
-      opt.setName('user').setDescription('Target user').setRequired(true)
+      opt.setName('user').setRequired(true)
     )
     .addIntegerOption(opt =>
-      opt.setName('amount').setDescription('Amount').setRequired(true)
+      opt.setName('amount').setRequired(true)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -17,10 +17,10 @@ module.exports = {
     const user = interaction.options.getUser('user');
     const amount = interaction.options.getInteger('amount');
 
-    eco.removeBalance(user.id, amount);
+    eco.removeFarm(user.id, amount);
 
     await interaction.reply({
-      content: `❌ تم سحب ${amount} من ${user.username}`,
+      content: `❌ Removed ${amount} crops`,
       flags: 64
     });
   }
