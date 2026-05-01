@@ -8,7 +8,11 @@ function load() {
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, '{}');
   }
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
 /* ---------------- SAVE ---------------- */
@@ -25,13 +29,15 @@ function getUser(id) {
       balance: 0,
       total: 0
     };
-    save(data);
   }
+
+  if (typeof data[id].balance !== 'number') data[id].balance = 0;
+  if (typeof data[id].total !== 'number') data[id].total = 0;
 
   return data[id];
 }
 
-/* ---------------- ADD BALANCE ---------------- */
+/* ---------------- ADD ---------------- */
 function addBalance(id, amount) {
   const data = load();
 
@@ -45,22 +51,19 @@ function addBalance(id, amount) {
   save(data);
 }
 
-/* ---------------- REMOVE BALANCE ---------------- */
+/* ---------------- REMOVE ---------------- */
 function removeBalance(id, amount) {
   const data = load();
 
   if (!data[id]) return;
 
   data[id].balance -= amount;
-
-  if (data[id].balance < 0) {
-    data[id].balance = 0;
-  }
+  if (data[id].balance < 0) data[id].balance = 0;
 
   save(data);
 }
 
-/* ---------------- WEEKLY COLLECT (+250) ---------------- */
+/* ---------------- WEEKLY COLLECT ---------------- */
 function collectWeekly(id) {
   const data = load();
 
@@ -87,7 +90,6 @@ function getLeaderboard() {
     .slice(0, 10);
 }
 
-/* ---------------- EXPORTS ---------------- */
 module.exports = {
   getUser,
   addBalance,
